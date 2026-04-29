@@ -2,7 +2,6 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { EmptyNotebookIcon } from "@/components/EmptyNotebookIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTemplates } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
@@ -51,11 +51,9 @@ export default function TemplatesScreen() {
 
       {isEmpty ? (
         <View style={styles.empty}>
-          <Image
-            source={require("@/assets/images/empty-customers.png")}
-            style={styles.emptyImage}
-            resizeMode="contain"
-          />
+          <View style={styles.emptyImage}>
+            <EmptyNotebookIcon size={120} color={colors.text} />
+          </View>
           <Text style={styles.emptyTitle}>No templates yet</Text>
           <Text style={styles.emptySubtitle}>
             Create a template to start taking measurements
@@ -145,7 +143,13 @@ const makeStyles = (c: Colors) =>
       paddingHorizontal: 32,
       paddingBottom: 80,
     },
-    emptyImage: { width: 120, height: 120, marginBottom: 24 },
+    emptyImage: {
+      width: 120,
+      height: 120,
+      marginBottom: 24,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     emptyTitle: {
       fontSize: 20,
       fontWeight: "700",

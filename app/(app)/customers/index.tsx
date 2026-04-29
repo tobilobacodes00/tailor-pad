@@ -3,7 +3,6 @@ import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,6 +13,7 @@ import {
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ConfirmDeleteSheet } from "@/components/ConfirmDeleteSheet";
+import { EmptyNotebookIcon } from "@/components/EmptyNotebookIcon";
 import { NewMeasurementSheet } from "@/components/NewMeasurementSheet";
 import { useTheme } from "@/hooks/useTheme";
 import { useCustomers, type Customer } from "@/stores/customers";
@@ -160,11 +160,9 @@ function EmptyState({ colors }: { colors: Colors }) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.empty}>
-      <Image
-        source={require("@/assets/images/empty-customers.png")}
-        style={styles.emptyImage}
-        resizeMode="contain"
-      />
+      <View style={styles.emptyImage}>
+        <EmptyNotebookIcon size={120} color={colors.text} />
+      </View>
       <Text style={styles.emptyTitle}>No customers yet</Text>
       <Text style={styles.emptySubtitle}>
         Tap &quot;Plus Icon&quot; to add your first customer
@@ -340,7 +338,13 @@ const makeStyles = (c: Colors) =>
       paddingHorizontal: 32,
       paddingBottom: 80,
     },
-    emptyImage: { width: 120, height: 120, marginBottom: 24 },
+    emptyImage: {
+      width: 120,
+      height: 120,
+      marginBottom: 24,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     emptyTitle: {
       fontSize: 20,
       fontWeight: "700",
