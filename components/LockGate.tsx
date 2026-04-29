@@ -1,4 +1,3 @@
-import { Feather } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -14,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import TailorPadIcon from "@/assets/images/tailor-pad-icon.svg";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useTheme } from "@/hooks/useTheme";
 import { useLock } from "@/stores/lock";
@@ -92,9 +92,7 @@ export function LockGate({ children }: Props) {
         style={styles.flex}
       >
         <View style={styles.content}>
-          <View style={styles.iconWrap}>
-            <Feather name="lock" size={32} color={colors.text} />
-          </View>
+          <TailorPadIcon width={88} height={88} style={styles.brandIcon} />
 
           <Text style={styles.heading}>App is locked</Text>
           <Text style={styles.subtitle}>
@@ -143,15 +141,7 @@ const makeStyles = (c: Colors) =>
       paddingBottom: 16,
       alignItems: "center",
     },
-    iconWrap: {
-      width: 72,
-      height: 72,
-      borderRadius: 36,
-      backgroundColor: c.surface,
-      borderWidth: 1,
-      borderColor: c.border,
-      alignItems: "center",
-      justifyContent: "center",
+    brandIcon: {
       marginBottom: 24,
     },
     heading: { fontSize: 28, fontWeight: "700", color: c.text },
