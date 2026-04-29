@@ -25,8 +25,9 @@ const LINKS = {
   },
   abdul: {
     x: "https://x.com/abdul_uxui",
-    facebook: "https://facebook.com/abdul.uxui",
-    instagram: "https://instagram.com/abdul_uxui",
+    facebook: "https://www.facebook.com/share/1J867TvEvN/",
+    instagram:
+      "https://www.instagram.com/abdul_uxui?igsh=MWlwcmpqZHd1ZWMyMg==",
   },
 };
 
