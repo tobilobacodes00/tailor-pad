@@ -22,6 +22,9 @@ import { exportBackup, importBackup } from "@/utils/backup";
 const LINKS = {
   tobiloba: {
     website: "https://tobilobasulaimon.com",
+    github: "https://github.com/tobilobacodes00",
+    linkedin: "https://www.linkedin.com/in/tobilobacodes",
+    x: "https://x.com/tobilobacodes00",
   },
   abdul: {
     x: "https://x.com/abdul_uxui",
@@ -173,14 +176,40 @@ export function CustomDrawerContent({
             <Text style={styles.creditLabel}>Built by</Text>
             <Text style={styles.creditName}>Tobiloba Sulaimon</Text>
           </View>
-          <Pressable
-            hitSlop={8}
-            onPress={() => openLink(LINKS.tobiloba.website)}
-            accessibilityRole="button"
-            accessibilityLabel="Tobiloba's website"
-          >
-            <Feather name="globe" size={20} color={colors.text} />
-          </Pressable>
+          <View style={styles.socials}>
+            <Pressable
+              hitSlop={8}
+              onPress={() => openLink(LINKS.tobiloba.website)}
+              accessibilityRole="button"
+              accessibilityLabel="Tobiloba's website"
+            >
+              <Feather name="globe" size={20} color={colors.text} />
+            </Pressable>
+            <Pressable
+              hitSlop={8}
+              onPress={() => openLink(LINKS.tobiloba.github)}
+              accessibilityRole="button"
+              accessibilityLabel="Tobiloba on GitHub"
+            >
+              <Ionicons name="logo-github" size={20} color={colors.text} />
+            </Pressable>
+            <Pressable
+              hitSlop={8}
+              onPress={() => openLink(LINKS.tobiloba.linkedin)}
+              accessibilityRole="button"
+              accessibilityLabel="Tobiloba on LinkedIn"
+            >
+              <Ionicons name="logo-linkedin" size={20} color="#0A66C2" />
+            </Pressable>
+            <Pressable
+              hitSlop={8}
+              onPress={() => openLink(LINKS.tobiloba.x)}
+              accessibilityRole="button"
+              accessibilityLabel="Tobiloba on X"
+            >
+              <Ionicons name="logo-twitter" size={20} color={colors.text} />
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.creditBlock}>
@@ -292,5 +321,5 @@ const makeStyles = (c: Colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    socials: { flexDirection: "row", gap: 14 },
+    socials: { flexDirection: "row", gap: 12 },
   });

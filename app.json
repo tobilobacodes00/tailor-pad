@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Tailor",
+    "name": "Tailor Pad",
     "slug": "tailor-app",
     "version": "1.0.0",
     "description": "The simple way for tailors to save, organize, and reuse customer measurements.",
     "primaryColor": "#0B0B0B",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/tailor-pad-icon.png",
     "scheme": "tailorapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
