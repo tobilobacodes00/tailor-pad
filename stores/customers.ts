@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Crypto from "expo-crypto";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -98,7 +99,7 @@ export const useCustomers = create<CustomersState>()(
     (set, get) => ({
       customers: seed,
       add: ({ name, templateId, measurements }) => {
-        const id = String(Date.now());
+        const id = Crypto.randomUUID();
         const ts = Date.now();
         const c: Customer = {
           id,
@@ -127,7 +128,9 @@ export const useCustomers = create<CustomersState>()(
     }),
     {
       name: "tailor-customers",
+      version: 1,
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState) => persistedState as CustomersState,
     }
   )
 );

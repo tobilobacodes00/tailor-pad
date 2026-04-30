@@ -14,37 +14,41 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useTheme } from "@/hooks/useTheme";
-import { usePreferences } from "@/stores/preferences";
+import { useLock } from "@/stores/lock";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
+import { verifyLock } from "@/utils/auth";
 
 export default function LockSetupScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const lockPassword = usePreferences((s) => s.lockPassword);
-  const setLockPassword = usePreferences((s) => s.setLockPassword);
-
-  const isLockSet = lockPassword !== null;
+  const isLockSet = useLock((s) => s.isLockSet);
+  const setLockAction = useLock((s) => s.setLock);
+  const clearLockAndUnlock = useLock((s) => s.clearLockAndUnlock);
 
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const handleSave = () => {
-    if (isLockSet && current !== lockPassword) {
-      setError("Current password is incorrect.");
-      return;
+  const handleSave = async () => {
+    if (isLockSet) {
+      const ok = await verifyLock(current);
+      if (!ok) {
+        setError("Current password is incorrect.");
+        return;
+      }
     }
-    if (next.length < 4) {
-      setError("Password must be at least 4 characters.");
+    if (next.length < 6) {
+      setError("Password must be at least 6 characters.");
       return;
     }
     if (next !== confirm) {
       setError("New passwords don't match.");
       return;
     }
-    setLockPassword(next);
+    await setLockAction(next);
     Alert.alert(
       isLockSet ? "Password changed" : "Lock added",
       "From now on you'll need this password to open the app."
@@ -52,8 +56,9 @@ export default function LockSetupScreen() {
     router.back();
   };
 
-  const handleRemove = () => {
-    if (current !== lockPassword) {
+  const handleRemove = async () => {
+    const ok = await verifyLock(current);
+    if (!ok) {
       setError("Current password is incorrect.");
       return;
     }
@@ -65,8 +70,8 @@ export default function LockSetupScreen() {
         {
           text: "Remove",
           style: "destructive",
-          onPress: () => {
-            setLockPassword(null);
+          onPress: async () => {
+            await clearLockAndUnlock();
             router.back();
           },
         },
@@ -115,6 +120,10 @@ export default function LockSetupScreen() {
                   placeholder="••••••"
                   placeholderTextColor={colors.textPlaceholder}
                   secureTextEntry
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  textContentType="password"
                   style={styles.input}
                 />
               </View>
@@ -130,9 +139,13 @@ export default function LockSetupScreen() {
                   setNext(v);
                   setError(null);
                 }}
-                placeholder="At least 4 characters"
+                placeholder="At least 6 characters"
                 placeholderTextColor={colors.textPlaceholder}
                 secureTextEntry
+                autoCorrect={false}
+                autoCapitalize="none"
+                autoComplete="new-password"
+                textContentType="newPassword"
                 style={styles.input}
               />
             </View>
@@ -148,6 +161,10 @@ export default function LockSetupScreen() {
                 placeholder="Repeat password"
                 placeholderTextColor={colors.textPlaceholder}
                 secureTextEntry
+                autoCorrect={false}
+                autoCapitalize="none"
+                autoComplete="new-password"
+                textContentType="newPassword"
                 style={styles.input}
               />
             </View>
@@ -198,7 +215,7 @@ const makeStyles = (c: Colors) =>
       paddingHorizontal: 24,
       paddingBottom: 16,
     },
-    heading: { fontSize: 28, fontWeight: "700", color: c.text },
+    heading: { fontSize: 28, fontWeight: "700", fontFamily: FONT.bold, color: c.text },
     subtitle: {
       marginTop: 8,
       fontSize: 15,
@@ -207,7 +224,7 @@ const makeStyles = (c: Colors) =>
     },
     fields: { marginTop: 24, gap: 16 },
     fieldGroup: { gap: 6 },
-    label: { fontSize: 13, color: c.textMuted, fontWeight: "500" },
+    label: { fontSize: 13, color: c.textMuted, fontWeight: "500", fontFamily: FONT.medium },
     input: {
       fontSize: 17,
       color: c.text,
@@ -221,6 +238,6 @@ const makeStyles = (c: Colors) =>
     removeText: {
       fontSize: 15,
       color: c.destructive,
-      fontWeight: "500",
+      fontWeight: "500", fontFamily: FONT.medium,
     },
   });

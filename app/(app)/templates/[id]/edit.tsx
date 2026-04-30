@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
 import { useTemplates } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 
 type Field = { id: string; name: string };
 
@@ -168,9 +169,9 @@ const makeStyles = (c: Colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    doneLabel: { fontSize: 17, fontWeight: "600", color: c.text },
+    doneLabel: { fontSize: 17, fontWeight: "600", fontFamily: FONT.semibold, color: c.text },
     content: { paddingHorizontal: 24, paddingBottom: 32 },
-    title: { fontSize: 28, fontWeight: "700", color: c.text, marginTop: 4 },
+    title: { fontSize: 28, fontWeight: "700", fontFamily: FONT.bold, color: c.text, marginTop: 4 },
     metaLabel: {
       fontSize: 13,
       color: c.textPlaceholder,
@@ -210,5 +211,5 @@ const makeStyles = (c: Colors) =>
       borderColor: c.border,
       backgroundColor: c.surface,
     },
-    addText: { fontSize: 16, fontWeight: "500", color: c.text },
+    addText: { fontSize: 16, fontWeight: "500", fontFamily: FONT.medium, color: c.text },
   });

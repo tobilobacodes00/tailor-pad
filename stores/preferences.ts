@@ -2,32 +2,44 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+export type ThemeMode = "system" | "light" | "dark";
+
 type PreferencesState = {
   hasOnboarded: boolean;
-  notifications: boolean;
-  darkMode: boolean;
-  lockPassword: string | null;
+  themeMode: ThemeMode;
   setOnboarded: (value: boolean) => void;
-  setNotifications: (value: boolean) => void;
-  setDarkMode: (value: boolean) => void;
-  setLockPassword: (value: string | null) => void;
+  setThemeMode: (value: ThemeMode) => void;
+};
+
+type PersistedV1 = {
+  hasOnboarded?: boolean;
+  notifications?: boolean;
+  darkMode?: boolean;
+  lockPassword?: string | null;
 };
 
 export const usePreferences = create<PreferencesState>()(
   persist(
     (set) => ({
       hasOnboarded: false,
-      notifications: true,
-      darkMode: false,
-      lockPassword: null,
+      themeMode: "system",
       setOnboarded: (value) => set({ hasOnboarded: value }),
-      setNotifications: (value) => set({ notifications: value }),
-      setDarkMode: (value) => set({ darkMode: value }),
-      setLockPassword: (value) => set({ lockPassword: value }),
+      setThemeMode: (value) => set({ themeMode: value }),
     }),
     {
       name: "tailor-preferences",
+      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState, fromVersion) => {
+        if (fromVersion < 2) {
+          const old = persistedState as PersistedV1;
+          return {
+            hasOnboarded: old.hasOnboarded ?? false,
+            themeMode: old.darkMode ? "dark" : "system",
+          } as PreferencesState;
+        }
+        return persistedState as PreferencesState;
+      },
     }
   )
 );

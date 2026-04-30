@@ -18,6 +18,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useCustomers } from "@/stores/customers";
 import { useTemplates } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 import { shareMeasurementPdf } from "@/utils/pdf";
 import { formatTimeLabel } from "@/utils/time";
 
@@ -215,11 +216,11 @@ const makeStyles = (c: Colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    doneLabel: { fontSize: 17, fontWeight: "600", color: c.text },
+    doneLabel: { fontSize: 17, fontWeight: "600", fontFamily: FONT.semibold, color: c.text },
     content: { paddingHorizontal: 24, paddingBottom: 32 },
     title: {
       fontSize: 28,
-      fontWeight: "700",
+      fontWeight: "700", fontFamily: FONT.bold,
       color: c.text,
       marginTop: 4,
       marginBottom: 8,
@@ -257,7 +258,7 @@ const makeStyles = (c: Colors) =>
       borderBottomWidth: 1,
       borderBottomColor: c.divider,
     },
-    tableLabel: { fontSize: 16, color: c.text, fontWeight: "500" },
+    tableLabel: { fontSize: 16, color: c.text, fontWeight: "500", fontFamily: FONT.medium },
     tableValue: { fontSize: 16, color: c.text },
     tableInput: {
       fontSize: 16,

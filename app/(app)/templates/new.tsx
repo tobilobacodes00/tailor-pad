@@ -17,8 +17,9 @@ import DraggableFlatList, {
 } from "react-native-draggable-flatlist";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
-import { useTemplates } from "@/stores/templates";
+import { useTemplates, validateTemplateInput } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 
 type Field = { id: string; name: string };
 
@@ -44,19 +45,15 @@ export default function NewTemplateScreen() {
   };
 
   const handleSave = () => {
-    if (!name.trim()) {
-      Alert.alert("Missing name", "Give the template a name first.");
+    const result = validateTemplateInput({
+      name,
+      fields: fields.map((f) => f.name),
+    });
+    if (!result.ok) {
+      Alert.alert("Can't save template", result.error);
       return;
     }
-    const cleaned = fields.map((f) => f.name.trim()).filter((n) => n.length > 0);
-    if (cleaned.length === 0) {
-      Alert.alert(
-        "Add at least one field",
-        "Templates need at least one measurement field."
-      );
-      return;
-    }
-    addTemplate({ name: name.trim(), fields: cleaned });
+    addTemplate({ name: result.name, fields: result.fields });
     router.back();
   };
 
@@ -199,11 +196,11 @@ const makeStyles = (c: Colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    saveLabel: { fontSize: 17, fontWeight: "600", color: c.text },
+    saveLabel: { fontSize: 17, fontWeight: "600", fontFamily: FONT.semibold, color: c.text },
     content: { paddingHorizontal: 24, paddingBottom: 32 },
     title: {
       fontSize: 28,
-      fontWeight: "700",
+      fontWeight: "700", fontFamily: FONT.bold,
       color: c.text,
       marginTop: 4,
       marginBottom: 24,
@@ -211,7 +208,7 @@ const makeStyles = (c: Colors) =>
     sectionLabel: {
       fontSize: 14,
       color: c.textMuted,
-      fontWeight: "500",
+      fontWeight: "500", fontFamily: FONT.medium,
       marginBottom: 8,
     },
     sectionHint: { fontSize: 13, color: c.textMuted, marginTop: 4 },
@@ -255,5 +252,5 @@ const makeStyles = (c: Colors) =>
       borderColor: c.border,
       backgroundColor: c.surface,
     },
-    addText: { fontSize: 16, fontWeight: "500", color: c.text },
+    addText: { fontSize: 16, fontWeight: "500", fontFamily: FONT.medium, color: c.text },
   });

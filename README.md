@@ -1,50 +1,70 @@
-# Welcome to your Expo app 👋
+# Tailor Pad
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> The simple way for tailors to save, organize, and reuse customer measurements.
 
-## Get started
+A frontend-only React Native (Expo) app that stores customer measurements on the user's device. No backend, no account, no telemetry beyond optional crash reporting.
 
-1. Install dependencies
+## What It Is
 
-   ```bash
-   npm install
-   ```
+- **Audience:** individual tailors who currently track measurements on paper.
+- **Core flow:** create reusable measurement templates → add customers under a template → enter and edit measurements → export to PDF or share.
+- **Data:** customer name + arbitrary measurement key/value pairs. Stored locally via AsyncStorage. Lock password stored in iOS Keychain / Android Keystore via `expo-secure-store`.
+- **Distribution:** Android first via APK / Play Console Internal Testing. iOS later.
 
-2. Start the app
+## Tech
 
-   ```bash
-   npx expo start
-   ```
+- Expo SDK 54 / React Native 0.81 / React 19
+- TypeScript strict mode
+- expo-router (file-based routing) with typed routes
+- Zustand for state, with `persist` middleware over AsyncStorage
+- Comfortaa font via `@expo-google-fonts/comfortaa`
+- expo-secure-store for credentials, expo-local-authentication for biometric confirmation, expo-crypto for hashing/random
+- expo-print + expo-sharing for PDF export, expo-document-picker + expo-file-system for backup import
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Local Development
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Then press `a` to launch on Android (emulator or USB-connected device with developer mode), `i` for iOS simulator (macOS only), or scan the QR with Expo Go for a quick preview.
 
-## Learn more
+## Build for Distribution
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+# Preview APK for beta testers
+eas build --profile preview --platform android
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# Production APK / AAB
+eas build --profile production --platform android
+```
 
-## Join the community
+See `docs/HOW_TO_RELEASE.md` for the full release flow including OTA updates via `eas update`.
 
-Join our community of developers creating universal apps.
+## Project Layout
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+app/                # expo-router screens (onboarding, lock-setup, customers, templates, setup)
+components/         # shared UI (LockGate, drawer, sheets, buttons, icons)
+stores/             # Zustand stores (customers, templates, preferences, lock)
+hooks/              # useTheme, useHistory
+utils/              # auth (SecureStore wrapper), backup, pdf, biometrics, time helpers
+theme/              # colors, fonts
+assets/             # icons, splash, illustrations
+docs/security/      # threat model + incident response
+```
+
+## Security & Privacy
+
+- Customer measurement data is **personally identifiable** under NDPA (Nigeria). The privacy notice lives at `docs/PRIVACY.md` and at `https://tobilobasulaimon.com/tailor/privacy`.
+- See [`SECURITY.md`](./SECURITY.md) for vulnerability reporting.
+- See [`docs/security/threat-model.md`](./docs/security/threat-model.md) for the in-scope risks and mitigations.
+
+## Contributing
+
+Solo project for now. PRs from the design partner welcome — see `docs/HOW_TO_RELEASE.md` for release expectations.
+
+## License
+
+Proprietary. All rights reserved.

@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useTheme } from "@/hooks/useTheme";
 import type { Colors } from "@/theme/colors";
 
@@ -21,6 +22,7 @@ type Props = {
 export function BottomSheet({ visible, onClose, children }: Props) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const reduceMotion = useReducedMotion();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
@@ -28,7 +30,7 @@ export function BottomSheet({ visible, onClose, children }: Props) {
       visible={visible}
       onRequestClose={onClose}
       transparent
-      animationType="slide"
+      animationType={reduceMotion ? "fade" : "slide"}
       statusBarTranslucent
     >
       <Pressable style={styles.backdrop} onPress={onClose}>

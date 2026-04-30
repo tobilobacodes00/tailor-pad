@@ -8,6 +8,7 @@ import { ConfirmDeleteSheet } from "@/components/ConfirmDeleteSheet";
 import { useTheme } from "@/hooks/useTheme";
 import { useTemplates } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 import { formatTimeLabel } from "@/utils/time";
 
 export default function TemplateDetailScreen() {
@@ -120,7 +121,7 @@ const makeStyles = (c: Colors) =>
       justifyContent: "center",
     },
     content: { paddingHorizontal: 24, paddingBottom: 32 },
-    title: { fontSize: 28, fontWeight: "700", color: c.text, marginTop: 4 },
+    title: { fontSize: 28, fontWeight: "700", fontFamily: FONT.bold, color: c.text, marginTop: 4 },
     metaLabel: {
       fontSize: 13,
       color: c.textPlaceholder,
@@ -140,5 +141,5 @@ const makeStyles = (c: Colors) =>
       borderBottomWidth: 1,
       borderBottomColor: c.divider,
     },
-    fieldLabel: { fontSize: 16, color: c.text, fontWeight: "500" },
+    fieldLabel: { fontSize: 16, color: c.text, fontWeight: "500", fontFamily: FONT.medium },
   });

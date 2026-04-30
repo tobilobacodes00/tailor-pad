@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 
 type Props = {
   label: string;
@@ -36,6 +37,6 @@ const makeStyles = (c: Colors) =>
     label: {
       color: c.primaryText,
       fontSize: 17,
-      fontWeight: "600",
+      fontWeight: "600", fontFamily: FONT.semibold,
     },
   });

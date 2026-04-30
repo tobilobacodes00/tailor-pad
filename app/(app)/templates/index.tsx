@@ -2,17 +2,18 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import {
+  FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { EmptyNotebookIcon } from "@/components/EmptyNotebookIcon";
+import EmptyStateIcon from "@/assets/images/empty-state.svg";
 import { useTheme } from "@/hooks/useTheme";
 import { useTemplates } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 import { formatUsedLabel } from "@/utils/time";
 
 export default function TemplatesScreen() {
@@ -52,7 +53,7 @@ export default function TemplatesScreen() {
       {isEmpty ? (
         <View style={styles.empty}>
           <View style={styles.emptyImage}>
-            <EmptyNotebookIcon size={120} color={colors.text} />
+            <EmptyStateIcon width={120} height={120} />
           </View>
           <Text style={styles.emptyTitle}>No templates yet</Text>
           <Text style={styles.emptySubtitle}>
@@ -75,32 +76,35 @@ export default function TemplatesScreen() {
           </Pressable>
         </View>
       ) : (
-        <ScrollView
+        <FlatList
+          data={templates}
+          keyExtractor={(t) => t.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.sectionLabel}>All templates</Text>
-          <View style={styles.list}>
-            {templates.map((t) => (
-              <Pressable
-                key={t.id}
-                onPress={() => router.push(`/templates/${t.id}`)}
-                style={({ pressed }) => [
-                  styles.template,
-                  pressed && { backgroundColor: colors.rowPress },
-                ]}
-              >
-                <View style={styles.templateIcon}>
-                  <Feather name="file-text" size={18} color={colors.text} />
-                </View>
-                <Text style={styles.templateName}>{t.name}</Text>
-                <Text style={styles.templateMeta}>
-                  {formatUsedLabel(t.lastUsedAt)}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </ScrollView>
+          ListHeaderComponent={
+            <Text style={styles.sectionLabel}>All templates</Text>
+          }
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          renderItem={({ item: t }) => (
+            <Pressable
+              onPress={() => router.push(`/templates/${t.id}`)}
+              style={({ pressed }) => [
+                styles.template,
+                pressed && { backgroundColor: colors.rowPress },
+              ]}
+            >
+              <View style={styles.templateIcon}>
+                <Feather name="file-text" size={18} color={colors.text} />
+              </View>
+              <Text style={styles.templateName}>{t.name}</Text>
+              <Text style={styles.templateMeta}>
+                {formatUsedLabel(t.lastUsedAt)}
+              </Text>
+            </Pressable>
+          )}
+          removeClippedSubviews
+          windowSize={10}
+        />
       )}
     </SafeAreaView>
   );
@@ -123,7 +127,7 @@ const makeStyles = (c: Colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    topTitle: { fontSize: 17, fontWeight: "500", color: c.text },
+    topTitle: { fontSize: 17, fontWeight: "500", fontFamily: FONT.medium, color: c.text },
     newButton: {
       flexDirection: "row",
       alignItems: "center",
@@ -135,7 +139,7 @@ const makeStyles = (c: Colors) =>
       borderColor: c.border,
       backgroundColor: c.surface,
     },
-    newLabel: { fontSize: 14, fontWeight: "500", color: c.text },
+    newLabel: { fontSize: 14, fontWeight: "500", fontFamily: FONT.medium, color: c.text },
     empty: {
       flex: 1,
       alignItems: "center",
@@ -152,7 +156,7 @@ const makeStyles = (c: Colors) =>
     },
     emptyTitle: {
       fontSize: 20,
-      fontWeight: "700",
+      fontWeight: "700", fontFamily: FONT.bold,
       color: c.text,
       marginBottom: 8,
     },
@@ -173,11 +177,11 @@ const makeStyles = (c: Colors) =>
       borderColor: c.border,
       backgroundColor: c.surface,
     },
-    createLabel: { fontSize: 16, fontWeight: "500", color: c.text },
+    createLabel: { fontSize: 16, fontWeight: "500", fontFamily: FONT.medium, color: c.text },
     listContent: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 32 },
     sectionLabel: {
       fontSize: 16,
-      fontWeight: "600",
+      fontWeight: "600", fontFamily: FONT.semibold,
       color: c.text,
       marginBottom: 12,
     },
@@ -203,6 +207,6 @@ const makeStyles = (c: Colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    templateName: { flex: 1, fontSize: 16, fontWeight: "600", color: c.text },
+    templateName: { flex: 1, fontSize: 16, fontWeight: "600", fontFamily: FONT.semibold, color: c.text },
     templateMeta: { fontSize: 13, color: c.textMuted, fontStyle: "italic" },
   });

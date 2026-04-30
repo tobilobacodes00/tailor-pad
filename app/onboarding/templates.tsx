@@ -13,6 +13,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { useTheme } from "@/hooks/useTheme";
 import { usePreferences } from "@/stores/preferences";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 
 const MOCKUP_ASPECT = 400 / 314;
 
@@ -70,7 +71,7 @@ const makeStyles = (c: Colors) =>
     textBlock: { gap: 12, marginBottom: 24, paddingHorizontal: 24 },
     heading: {
       fontSize: 32,
-      fontWeight: "700",
+      fontWeight: "700", fontFamily: FONT.bold,
       color: c.text,
       lineHeight: 40,
     },
@@ -78,7 +79,7 @@ const makeStyles = (c: Colors) =>
     buttons: { gap: 4, paddingHorizontal: 24, paddingBottom: 8 },
     skip: {
       fontSize: 17,
-      fontWeight: "500",
+      fontWeight: "500", fontFamily: FONT.medium,
       color: c.text,
       textAlign: "center",
       paddingVertical: 16,

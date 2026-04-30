@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 import { BottomSheet } from "./BottomSheet";
 
 type Props = {
@@ -46,7 +47,7 @@ const makeStyles = (c: Colors) =>
   StyleSheet.create({
     title: {
       fontSize: 22,
-      fontWeight: "700",
+      fontWeight: "700", fontFamily: FONT.bold,
       color: c.text,
       marginBottom: 8,
     },
@@ -66,11 +67,11 @@ const makeStyles = (c: Colors) =>
     confirmLabel: {
       color: "#FFFFFF",
       fontSize: 17,
-      fontWeight: "600",
+      fontWeight: "600", fontFamily: FONT.semibold,
     },
     cancel: {
       fontSize: 17,
-      fontWeight: "500",
+      fontWeight: "500", fontFamily: FONT.medium,
       color: c.text,
       textAlign: "center",
       paddingVertical: 16,

@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   Pressable,
-  ScrollView,
+  SectionList,
   StyleSheet,
   Text,
   TextInput,
@@ -12,13 +12,14 @@ import {
 } from "react-native";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { SafeAreaView } from "react-native-safe-area-context";
+import EmptyStateIcon from "@/assets/images/empty-state.svg";
 import { ConfirmDeleteSheet } from "@/components/ConfirmDeleteSheet";
-import { EmptyNotebookIcon } from "@/components/EmptyNotebookIcon";
 import { NewMeasurementSheet } from "@/components/NewMeasurementSheet";
 import { useTheme } from "@/hooks/useTheme";
 import { useCustomers, type Customer } from "@/stores/customers";
 import { useTemplates } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 import { shareMeasurementPdf } from "@/utils/pdf";
 import { dayBucket, formatTimeLabel, type DayBucket } from "@/utils/time";
 
@@ -34,17 +35,21 @@ export default function CustomersScreen() {
   const [showNewSheet, setShowNewSheet] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  const filtered = customers.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return customers;
+    return customers.filter((c) => c.name.toLowerCase().includes(q));
+  }, [customers, search]);
 
-  const grouped = useMemo(() => {
+  const sections = useMemo(() => {
     const sorted = [...filtered].sort((a, b) => b.createdAt - a.createdAt);
-    return {
-      Today: sorted.filter((c) => dayBucket(c.createdAt) === "Today"),
-      Yesterday: sorted.filter((c) => dayBucket(c.createdAt) === "Yesterday"),
-      Earlier: sorted.filter((c) => dayBucket(c.createdAt) === "Earlier"),
-    };
+    const buckets: DayBucket[] = ["Today", "Yesterday", "Earlier"];
+    return buckets
+      .map((title) => ({
+        title,
+        data: sorted.filter((c) => dayBucket(c.createdAt) === title),
+      }))
+      .filter((s) => s.data.length > 0);
   }, [filtered]);
 
   const getTemplateLabel = (templateId: string) => {
@@ -71,7 +76,7 @@ export default function CustomersScreen() {
   };
 
   const isEmpty = customers.length === 0;
-  const buckets: DayBucket[] = ["Today", "Yesterday", "Earlier"];
+  const noMatches = !isEmpty && filtered.length === 0;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
@@ -100,28 +105,33 @@ export default function CustomersScreen() {
 
       {isEmpty ? (
         <EmptyState colors={colors} />
+      ) : noMatches ? (
+        <NoMatchesState colors={colors} query={search.trim()} />
       ) : (
-        <ScrollView
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-        >
-          {buckets.map((bucket) => {
-            const list = grouped[bucket];
-            if (list.length === 0) return null;
-            return (
-              <Section
-                key={bucket}
-                colors={colors}
-                label={bucket}
-                customers={list}
-                getTemplateLabel={getTemplateLabel}
-                onView={(id) => router.push(`/customers/${id}`)}
-                onShare={handleShare}
-                onDelete={(id) => setConfirmDeleteId(id)}
-              />
-            );
-          })}
-        </ScrollView>
+          stickySectionHeadersEnabled={false}
+          keyboardShouldPersistTaps="handled"
+          renderSectionHeader={({ section }) => (
+            <Text style={styles.sectionLabel}>{section.title}</Text>
+          )}
+          renderItem={({ item, index, section }) => (
+            <CustomerRow
+              colors={colors}
+              customer={item}
+              isFirst={index === 0}
+              isLast={index === section.data.length - 1}
+              templateLabel={getTemplateLabel(item.templateId)}
+              onView={(id) => router.push(`/customers/${id}`)}
+              onShare={handleShare}
+              onDelete={(id) => setConfirmDeleteId(id)}
+            />
+          )}
+          renderSectionFooter={() => <View style={styles.sectionFooter} />}
+        />
       )}
 
       <View style={styles.fab}>
@@ -161,7 +171,7 @@ function EmptyState({ colors }: { colors: Colors }) {
   return (
     <View style={styles.empty}>
       <View style={styles.emptyImage}>
-        <EmptyNotebookIcon size={120} color={colors.text} />
+        <EmptyStateIcon width={120} height={120} />
       </View>
       <Text style={styles.emptyTitle}>No customers yet</Text>
       <Text style={styles.emptySubtitle}>
@@ -171,95 +181,111 @@ function EmptyState({ colors }: { colors: Colors }) {
   );
 }
 
-type SectionProps = {
+function NoMatchesState({
+  colors,
+  query,
+}: {
   colors: Colors;
-  label: string;
-  customers: Customer[];
-  getTemplateLabel: (id: string) => string;
+  query: string;
+}) {
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  return (
+    <View style={styles.empty}>
+      <Text style={styles.emptyTitle}>No matches</Text>
+      <Text style={styles.emptySubtitle}>
+        No customer name contains &quot;{query}&quot;.
+      </Text>
+    </View>
+  );
+}
+
+type CustomerRowProps = {
+  colors: Colors;
+  customer: Customer;
+  isFirst: boolean;
+  isLast: boolean;
+  templateLabel: string;
   onView: (id: string) => void;
   onShare: (id: string) => void;
   onDelete: (id: string) => void;
 };
 
-function Section({
+function CustomerRow({
   colors,
-  label,
-  customers,
-  getTemplateLabel,
+  customer,
+  isFirst,
+  isLast,
+  templateLabel,
   onView,
   onShare,
   onDelete,
-}: SectionProps) {
+}: CustomerRowProps) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const cardStyle = [
+    styles.cardWrap,
+    isFirst && styles.cardWrapFirst,
+    isLast && styles.cardWrapLast,
+  ];
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionLabel}>{label}</Text>
-      <View style={styles.sectionCard}>
-        {customers.map((c, idx) => (
-          <View key={c.id}>
-            <ReanimatedSwipeable
-              renderRightActions={() => (
-                <View style={styles.swipeActions}>
-                  <Pressable
-                    style={[
-                      styles.swipeAction,
-                      { backgroundColor: colors.swipeEdit },
-                    ]}
-                    onPress={() => onView(c.id)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Edit ${c.name}`}
-                  >
-                    <Feather name="edit-3" size={20} color="#FFFFFF" />
-                  </Pressable>
-                  <Pressable
-                    style={[
-                      styles.swipeAction,
-                      { backgroundColor: colors.swipeShare },
-                    ]}
-                    onPress={() => onShare(c.id)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Share ${c.name}'s measurement`}
-                  >
-                    <Feather name="share-2" size={20} color="#FFFFFF" />
-                  </Pressable>
-                  <Pressable
-                    style={[
-                      styles.swipeAction,
-                      { backgroundColor: colors.swipeDelete },
-                    ]}
-                    onPress={() => onDelete(c.id)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Delete ${c.name}`}
-                  >
-                    <Feather name="trash-2" size={20} color="#FFFFFF" />
-                  </Pressable>
-                </View>
-              )}
+    <View style={cardStyle}>
+      <ReanimatedSwipeable
+        renderRightActions={() => (
+          <View style={styles.swipeActions}>
+            <Pressable
+              style={[
+                styles.swipeAction,
+                { backgroundColor: colors.swipeEdit },
+              ]}
+              onPress={() => onView(customer.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${customer.name}`}
             >
-              <Pressable
-                style={({ pressed }) => [
-                  styles.row,
-                  pressed && { backgroundColor: colors.rowPress },
-                ]}
-                onPress={() => onView(c.id)}
-              >
-                <View style={styles.rowLeft}>
-                  <Text style={styles.rowName}>{c.name}</Text>
-                  <View style={styles.templateTag}>
-                    <Text style={styles.templateText}>
-                      {getTemplateLabel(c.templateId)}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.timeLabel}>
-                  {formatTimeLabel(c.createdAt)}
-                </Text>
-              </Pressable>
-            </ReanimatedSwipeable>
-            {idx < customers.length - 1 && <View style={styles.separator} />}
+              <Feather name="edit-3" size={20} color="#FFFFFF" />
+            </Pressable>
+            <Pressable
+              style={[
+                styles.swipeAction,
+                { backgroundColor: colors.swipeShare },
+              ]}
+              onPress={() => onShare(customer.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Share ${customer.name}'s measurement`}
+            >
+              <Feather name="share-2" size={20} color="#FFFFFF" />
+            </Pressable>
+            <Pressable
+              style={[
+                styles.swipeAction,
+                { backgroundColor: colors.swipeDelete },
+              ]}
+              onPress={() => onDelete(customer.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Delete ${customer.name}`}
+            >
+              <Feather name="trash-2" size={20} color="#FFFFFF" />
+            </Pressable>
           </View>
-        ))}
-      </View>
+        )}
+      >
+        <Pressable
+          style={({ pressed }) => [
+            styles.row,
+            pressed && { backgroundColor: colors.rowPress },
+          ]}
+          onPress={() => onView(customer.id)}
+        >
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowName}>{customer.name}</Text>
+            <View style={styles.templateTag}>
+              <Text style={styles.templateText}>{templateLabel}</Text>
+            </View>
+          </View>
+          <Text style={styles.timeLabel}>
+            {formatTimeLabel(customer.createdAt)}
+          </Text>
+        </Pressable>
+      </ReanimatedSwipeable>
+      {!isLast && <View style={styles.separator} />}
     </View>
   );
 }
@@ -275,7 +301,7 @@ const makeStyles = (c: Colors) =>
       paddingTop: 8,
       paddingBottom: 12,
     },
-    headerTitle: { fontSize: 28, fontWeight: "700", color: c.text },
+    headerTitle: { fontSize: 28, fontWeight: "700", fontFamily: FONT.bold, color: c.text },
     searchContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -289,19 +315,29 @@ const makeStyles = (c: Colors) =>
     },
     searchInput: { flex: 1, fontSize: 16, color: c.text, padding: 0 },
     listContent: { paddingHorizontal: 24, paddingBottom: 120 },
-    section: { marginBottom: 24 },
     sectionLabel: {
       fontSize: 18,
-      fontWeight: "600",
+      fontWeight: "600", fontFamily: FONT.semibold,
       color: c.text,
       marginBottom: 8,
     },
-    sectionCard: {
+    sectionFooter: { height: 24 },
+    cardWrap: {
       backgroundColor: c.surface,
-      borderRadius: 12,
-      overflow: "hidden",
-      borderWidth: 1,
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
       borderColor: c.border,
+      overflow: "hidden",
+    },
+    cardWrapFirst: {
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
+      borderTopWidth: 1,
+    },
+    cardWrapLast: {
+      borderBottomLeftRadius: 12,
+      borderBottomRightRadius: 12,
+      borderBottomWidth: 1,
     },
     row: {
       flexDirection: "row",
@@ -312,7 +348,7 @@ const makeStyles = (c: Colors) =>
       backgroundColor: c.surface,
     },
     rowLeft: { flex: 1, gap: 6 },
-    rowName: { fontSize: 17, fontWeight: "600", color: c.text },
+    rowName: { fontSize: 17, fontWeight: "600", fontFamily: FONT.semibold, color: c.text },
     templateTag: {
       alignSelf: "flex-start",
       backgroundColor: c.surfaceMuted,
@@ -347,7 +383,7 @@ const makeStyles = (c: Colors) =>
     },
     emptyTitle: {
       fontSize: 20,
-      fontWeight: "700",
+      fontWeight: "700", fontFamily: FONT.bold,
       color: c.text,
       marginBottom: 8,
     },

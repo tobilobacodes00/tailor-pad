@@ -1,5 +1,6 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import type { DrawerContentComponentProps } from "@react-navigation/drawer";
+import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
@@ -9,14 +10,15 @@ import {
   Linking,
   Pressable,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
+import { useLock } from "@/stores/lock";
 import { usePreferences } from "@/stores/preferences";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 import { exportBackup, importBackup } from "@/utils/backup";
 
 const LINKS = {
@@ -34,18 +36,17 @@ const LINKS = {
   },
 };
 
+const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
+
 export function CustomDrawerContent({
   navigation,
 }: DrawerContentComponentProps) {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const notifications = usePreferences((s) => s.notifications);
-  const setNotifications = usePreferences((s) => s.setNotifications);
-  const darkMode = usePreferences((s) => s.darkMode);
-  const setDarkMode = usePreferences((s) => s.setDarkMode);
-  const lockPassword = usePreferences((s) => s.lockPassword);
-  const isLockSet = lockPassword !== null;
+  const themeMode = usePreferences((s) => s.themeMode);
+  const setThemeMode = usePreferences((s) => s.setThemeMode);
+  const isLockSet = useLock((s) => s.isLockSet);
 
   const closeDrawer = () => navigation.closeDrawer();
 
@@ -60,7 +61,7 @@ export function CustomDrawerContent({
   const handleBackup = () => {
     Alert.alert(
       "Backup to Drive",
-      "Export — pick Google Drive (or any cloud/email) in the share sheet to save your data there.\n\nImport — pick a Tailor backup file from Drive, Files, or anywhere your phone can read.",
+      "Export — pick Google Drive (or any cloud/email) in the share sheet to save your data there.\n\nImport — pick a Tailor backup file from Drive, Files, or anywhere your phone can read.\n\nNote: backup files are unencrypted JSON. Treat them like sensitive customer data.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -85,9 +86,15 @@ export function CustomDrawerContent({
 
   const handleAppInfo = () => {
     Alert.alert(
-      "Tailor v1.0.0",
+      `Tailor v${APP_VERSION}`,
       "Built by Tobiloba Sulaimon\nDesigned by Abdul ui ux"
     );
+  };
+
+  const handleThemeMode = () => {
+    const order: typeof themeMode[] = ["system", "light", "dark"];
+    const next = order[(order.indexOf(themeMode) + 1) % order.length];
+    setThemeMode(next);
   };
 
   return (
@@ -106,27 +113,17 @@ export function CustomDrawerContent({
         />
         <MenuItem
           colors={colors}
-          label="Notifications"
+          label="Theme"
           right={
-            <Switch
-              value={notifications}
-              onValueChange={setNotifications}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={isDark ? colors.text : "#FFFFFF"}
-            />
+            <Text style={styles.rightText}>
+              {themeMode === "system"
+                ? "System"
+                : themeMode === "dark"
+                  ? "Dark"
+                  : "Light"}
+            </Text>
           }
-        />
-        <MenuItem
-          colors={colors}
-          label="Dark Mode"
-          right={
-            <Switch
-              value={darkMode}
-              onValueChange={setDarkMode}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={isDark ? colors.text : "#FFFFFF"}
-            />
-          }
+          onPress={handleThemeMode}
         />
         <MenuItem
           colors={colors}
@@ -160,7 +157,7 @@ export function CustomDrawerContent({
         <MenuItem
           colors={colors}
           label="App info"
-          right={<Text style={styles.rightText}>V1.0</Text>}
+          right={<Text style={styles.rightText}>v{APP_VERSION}</Text>}
           onPress={handleAppInfo}
         />
       </View>
@@ -294,9 +291,9 @@ const makeStyles = (c: Colors) =>
       justifyContent: "space-between",
       paddingVertical: 4,
     },
-    menuLabel: { fontSize: 17, color: c.text, fontWeight: "500" },
+    menuLabel: { fontSize: 17, color: c.text, fontWeight: "500", fontFamily: FONT.medium },
     rightRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-    rightLink: { fontSize: 15, color: c.text, fontWeight: "500" },
+    rightLink: { fontSize: 15, color: c.text, fontWeight: "500", fontFamily: FONT.medium },
     rightText: { fontSize: 15, color: c.textMuted },
     footer: {
       marginTop: "auto",
@@ -313,7 +310,7 @@ const makeStyles = (c: Colors) =>
     },
     creditText: { flex: 1 },
     creditLabel: { fontSize: 12, color: c.textMuted },
-    creditName: { fontSize: 14, color: c.text, fontWeight: "600" },
+    creditName: { fontSize: 14, color: c.text, fontWeight: "600", fontFamily: FONT.semibold },
     avatar: {
       width: 40,
       height: 40,

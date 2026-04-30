@@ -1,28 +1,13 @@
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { Alert } from "react-native";
-import { useCustomers, type Customer } from "@/stores/customers";
-import { useTemplates, type Template } from "@/stores/templates";
+import { useCustomers } from "@/stores/customers";
+import { BackupFileSchema, type BackupFile } from "@/stores/schemas";
+import { useTemplates } from "@/stores/templates";
+import { logSecurityEvent } from "@/utils/monitoring";
 
-type BackupFile = {
-  app: "tailor";
-  version: 1;
-  exportedAt: number;
-  templates: Template[];
-  customers: Customer[];
-};
-
-function isBackupFile(value: unknown): value is BackupFile {
-  if (typeof value !== "object" || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return (
-    v.app === "tailor" &&
-    v.version === 1 &&
-    Array.isArray(v.templates) &&
-    Array.isArray(v.customers)
-  );
-}
+const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
 
 export async function exportBackup(): Promise<void> {
   const payload: BackupFile = {
@@ -40,6 +25,11 @@ export async function exportBackup(): Promise<void> {
   const uri = `${FileSystem.cacheDirectory}tailor-backup-${stamp}.json`;
 
   await FileSystem.writeAsStringAsync(uri, JSON.stringify(payload, null, 2));
+
+  logSecurityEvent("backup_exported", {
+    templates: payload.templates.length,
+    customers: payload.customers.length,
+  });
 
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(uri, {
@@ -61,10 +51,21 @@ export async function importBackup(): Promise<void> {
   if (result.canceled) return;
 
   const file = result.assets[0];
+
+  if (typeof file.size === "number" && file.size > MAX_BACKUP_BYTES) {
+    logSecurityEvent("backup_import_rejected", { reason: "too_large" });
+    Alert.alert(
+      "Backup too large",
+      `This file is ${(file.size / 1024 / 1024).toFixed(1)} MB. Tailor backups are normally well under 5 MB. Pick a smaller file.`
+    );
+    return;
+  }
+
   let content: string;
   try {
     content = await FileSystem.readAsStringAsync(file.uri);
   } catch {
+    logSecurityEvent("backup_import_rejected", { reason: "read_failed" });
     Alert.alert("Couldn't open file", "The selected file couldn't be read.");
     return;
   }
@@ -73,6 +74,7 @@ export async function importBackup(): Promise<void> {
   try {
     parsed = JSON.parse(content);
   } catch {
+    logSecurityEvent("backup_import_rejected", { reason: "invalid_json" });
     Alert.alert(
       "Invalid backup",
       "This file isn't valid JSON. Pick a Tailor backup file."
@@ -80,15 +82,17 @@ export async function importBackup(): Promise<void> {
     return;
   }
 
-  if (!isBackupFile(parsed)) {
+  const validated = BackupFileSchema.safeParse(parsed);
+  if (!validated.success) {
+    logSecurityEvent("backup_import_rejected", { reason: "schema_failed" });
     Alert.alert(
       "Not a Tailor backup",
-      "This file doesn't look like a Tailor backup. Pick a file you exported from this app."
+      "This file doesn't look like a valid Tailor backup. Pick a file you exported from this app."
     );
     return;
   }
 
-  const data = parsed;
+  const data = validated.data;
   const currentTemplates = useTemplates.getState().templates.length;
   const currentCustomers = useCustomers.getState().customers.length;
 
@@ -101,12 +105,27 @@ export async function importBackup(): Promise<void> {
         text: "Replace",
         style: "destructive",
         onPress: () => {
-          useTemplates.setState({ templates: data.templates });
-          useCustomers.setState({ customers: data.customers });
-          Alert.alert(
-            "Restored",
-            `Loaded ${data.templates.length} templates and ${data.customers.length} customers.`
-          );
+          const prevTemplates = useTemplates.getState().templates;
+          const prevCustomers = useCustomers.getState().customers;
+          try {
+            useTemplates.setState({ templates: data.templates });
+            useCustomers.setState({ customers: data.customers });
+            logSecurityEvent("backup_imported", {
+              templates: data.templates.length,
+              customers: data.customers.length,
+            });
+            Alert.alert(
+              "Restored",
+              `Loaded ${data.templates.length} templates and ${data.customers.length} customers.`
+            );
+          } catch (e) {
+            useTemplates.setState({ templates: prevTemplates });
+            useCustomers.setState({ customers: prevCustomers });
+            Alert.alert(
+              "Import failed",
+              `Couldn't apply the backup. Your previous data has been restored.\n\n${String(e)}`
+            );
+          }
         },
       },
     ]

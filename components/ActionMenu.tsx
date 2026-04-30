@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 
 export type Action = {
   label: string;
@@ -97,7 +98,7 @@ const makeStyles = (c: Colors) =>
     label: {
       fontSize: 16,
       color: c.text,
-      fontWeight: "500",
+      fontWeight: "500", fontFamily: FONT.medium,
     },
     destructive: {
       color: c.destructive,

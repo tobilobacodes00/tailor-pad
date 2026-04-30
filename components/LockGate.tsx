@@ -16,17 +16,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import TailorPadIcon from "@/assets/images/tailor-pad-icon.svg";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useTheme } from "@/hooks/useTheme";
+import { useCustomers } from "@/stores/customers";
 import { useLock } from "@/stores/lock";
-import { usePreferences } from "@/stores/preferences";
+import { useTemplates } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 
 type Props = { children: ReactNode };
 
 export function LockGate({ children }: Props) {
-  const lockPassword = usePreferences((s) => s.lockPassword);
-  const setLockPassword = usePreferences((s) => s.setLockPassword);
+  const isLockSet = useLock((s) => s.isLockSet);
   const isUnlocked = useLock((s) => s.isUnlocked);
-  const unlock = useLock((s) => s.unlock);
+  const hydrated = useLock((s) => s.hydrated);
+  const cooldownUntil = useLock((s) => s.cooldownUntil);
+  const failedAttempts = useLock((s) => s.failedAttempts);
+  const init = useLock((s) => s.init);
+  const unlockWith = useLock((s) => s.unlockWith);
+  const clearLockAndUnlock = useLock((s) => s.clearLockAndUnlock);
   const reLock = useLock((s) => s.reLock);
 
   const { colors } = useTheme();
@@ -34,49 +40,76 @@ export function LockGate({ children }: Props) {
 
   const [entered, setEntered] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
 
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+
+  useEffect(() => {
+    init();
+  }, [init]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (next) => {
       const prev = appStateRef.current;
       appStateRef.current = next;
-      if (
-        prev === "active" &&
-        (next === "background" || next === "inactive")
-      ) {
+      if (prev === "active" && next === "background") {
         reLock();
       }
     });
     return () => sub.remove();
   }, [reLock]);
 
-  const isLocked = lockPassword !== null && !isUnlocked;
+  useEffect(() => {
+    if (cooldownUntil <= Date.now()) {
+      setCooldownRemaining(0);
+      return;
+    }
+    const tick = () => {
+      const remaining = Math.max(0, cooldownUntil - Date.now());
+      setCooldownRemaining(remaining);
+      if (remaining === 0) clearInterval(id);
+    };
+    tick();
+    const id = setInterval(tick, 250);
+    return () => clearInterval(id);
+  }, [cooldownUntil]);
 
+  if (!hydrated) return null;
+
+  const isLocked = isLockSet && !isUnlocked;
   if (!isLocked) return <>{children}</>;
 
-  const handleUnlock = () => {
-    if (entered === lockPassword) {
+  const inCooldown = cooldownRemaining > 0;
+
+  const handleUnlock = async () => {
+    if (inCooldown) return;
+    const ok = await unlockWith(entered);
+    if (ok) {
       setEntered("");
       setError(null);
-      unlock();
+    } else if (cooldownUntil > Date.now()) {
+      setError("Too many attempts. Please wait.");
     } else {
-      setError("Incorrect password.");
+      const remaining = Math.max(0, 5 - (failedAttempts + 1));
+      setError(
+        `Incorrect password.${remaining > 0 ? ` ${remaining} attempts left.` : ""}`
+      );
     }
   };
 
   const handleForgot = () => {
     Alert.alert(
       "Forgot password",
-      "Without a backend we can't email you a reset link. You can wipe the lock and start over (your templates and customers stay).",
+      "Without a backend we can't email you a reset link. You can wipe the lock and all data to start over. This permanently deletes your templates and customers.",
       [
         { text: "Cancel", style: "cancel" },
         {
-          text: "Wipe lock",
+          text: "Wipe lock and all data",
           style: "destructive",
-          onPress: () => {
-            setLockPassword(null);
-            unlock();
+          onPress: async () => {
+            useCustomers.setState({ customers: [] });
+            useTemplates.setState({ templates: [] });
+            await clearLockAndUnlock();
             setEntered("");
             setError(null);
           },
@@ -110,11 +143,21 @@ export function LockGate({ children }: Props) {
               placeholderTextColor={colors.textPlaceholder}
               secureTextEntry
               autoFocus
+              autoCorrect={false}
+              autoCapitalize="none"
+              autoComplete="password"
+              textContentType="password"
+              editable={!inCooldown}
               style={styles.input}
               onSubmitEditing={handleUnlock}
               returnKeyType="go"
             />
             {error && <Text style={styles.error}>{error}</Text>}
+            {inCooldown && (
+              <Text style={styles.error}>
+                Try again in {Math.ceil(cooldownRemaining / 1000)}s
+              </Text>
+            )}
 
             <Pressable onPress={handleForgot} hitSlop={6}>
               <Text style={styles.forgot}>Forgot password?</Text>
@@ -144,7 +187,7 @@ const makeStyles = (c: Colors) =>
     brandIcon: {
       marginBottom: 24,
     },
-    heading: { fontSize: 28, fontWeight: "700", color: c.text },
+    heading: { fontSize: 28, fontWeight: "700", fontFamily: FONT.bold, color: c.text },
     subtitle: {
       marginTop: 8,
       fontSize: 15,
@@ -171,7 +214,7 @@ const makeStyles = (c: Colors) =>
     forgot: {
       fontSize: 14,
       color: c.text,
-      fontWeight: "500",
+      fontWeight: "500", fontFamily: FONT.medium,
       textAlign: "center",
       paddingVertical: 4,
     },

@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
 import { useTemplates } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 import { formatUsedLabel } from "@/utils/time";
 import { BottomSheet } from "./BottomSheet";
 
@@ -129,7 +130,7 @@ const makeStyles = (c: Colors) =>
       alignItems: "center",
       marginBottom: 24,
     },
-    title: { fontSize: 22, fontWeight: "700", color: c.text },
+    title: { fontSize: 22, fontWeight: "700", fontFamily: FONT.bold, color: c.text },
     close: {
       width: 32,
       height: 32,
@@ -148,7 +149,7 @@ const makeStyles = (c: Colors) =>
     },
     sectionTitle: {
       fontSize: 18,
-      fontWeight: "600",
+      fontWeight: "600", fontFamily: FONT.semibold,
       color: c.text,
       marginBottom: 4,
     },
@@ -176,7 +177,7 @@ const makeStyles = (c: Colors) =>
       borderColor: c.border,
       backgroundColor: c.bg,
     },
-    emptyCtaText: { fontSize: 14, fontWeight: "500", color: c.text },
+    emptyCtaText: { fontSize: 14, fontWeight: "500", fontFamily: FONT.medium, color: c.text },
     templates: { gap: 12, marginBottom: 24 },
     template: {
       flexDirection: "row",
@@ -203,7 +204,7 @@ const makeStyles = (c: Colors) =>
     templateName: {
       flex: 1,
       fontSize: 16,
-      fontWeight: "600",
+      fontWeight: "600", fontFamily: FONT.semibold,
       color: c.text,
     },
     templateMeta: { fontSize: 13, color: c.textMuted, fontStyle: "italic" },
@@ -214,6 +215,6 @@ const makeStyles = (c: Colors) =>
       alignItems: "center",
     },
     ctaDisabled: { backgroundColor: c.primaryDisabled },
-    ctaLabel: { color: c.primaryText, fontSize: 17, fontWeight: "600" },
+    ctaLabel: { color: c.primaryText, fontSize: 17, fontWeight: "600", fontFamily: FONT.semibold },
     ctaLabelDisabled: { color: c.primaryDisabledText },
   });

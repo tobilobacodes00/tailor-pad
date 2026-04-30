@@ -21,6 +21,7 @@
     "android": {
       "package": "com.thegoodstuff.tailor",
       "versionCode": 1,
+      "allowBackup": false,
       "adaptiveIcon": {
         "backgroundColor": "#F4F4F4",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -47,8 +48,21 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "@sentry/react-native/expo"
     ],
+    "extra": {
+      "sentryDsn": ""
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": false

@@ -31,7 +31,7 @@ export const lightColors: Colors = {
   border: "#E5E7EB",
   text: "#0B0B0B",
   textMuted: "#5C5C5C",
-  textPlaceholder: "#9CA3AF",
+  textPlaceholder: "#6B7280",
   primary: "#0B0B0B",
   primaryText: "#FFFFFF",
   primaryDisabled: "#D1D5DB",

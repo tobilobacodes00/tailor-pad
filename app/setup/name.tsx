@@ -15,6 +15,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { useTheme } from "@/hooks/useTheme";
 import { usePreferences } from "@/stores/preferences";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 
 export default function TemplateNameScreen() {
   const router = useRouter();
@@ -103,7 +104,7 @@ const makeStyles = (c: Colors) =>
     },
     topSkip: {
       fontSize: 17,
-      fontWeight: "500",
+      fontWeight: "500", fontFamily: FONT.medium,
       color: c.text,
       paddingVertical: 8,
       paddingHorizontal: 4,
@@ -111,7 +112,7 @@ const makeStyles = (c: Colors) =>
     content: { flex: 1, paddingHorizontal: 24, paddingTop: 8 },
     heading: {
       fontSize: 32,
-      fontWeight: "700",
+      fontWeight: "700", fontFamily: FONT.bold,
       color: c.text,
       lineHeight: 40,
     },

@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,8 +19,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useTheme } from "@/hooks/useTheme";
 import { usePreferences } from "@/stores/preferences";
-import { useTemplates } from "@/stores/templates";
+import { useTemplates, validateTemplateInput } from "@/stores/templates";
 import type { Colors } from "@/theme/colors";
+import { FONT } from "@/theme/fonts";
 
 type Field = { id: string; name: string };
 
@@ -62,10 +64,15 @@ export default function CustomFieldsScreen() {
   };
 
   const handleSave = () => {
-    const cleaned = fields
-      .map((f) => f.name.trim())
-      .filter((n) => n.length > 0);
-    addTemplate({ name: name as string, fields: cleaned });
+    const result = validateTemplateInput({
+      name: name as string,
+      fields: fields.map((f) => f.name),
+    });
+    if (!result.ok) {
+      Alert.alert("Can't save template", result.error);
+      return;
+    }
+    addTemplate({ name: result.name, fields: result.fields });
 
     if (isFromTemplates) {
       router.dismissAll();
@@ -84,7 +91,7 @@ export default function CustomFieldsScreen() {
           <TextInput
             value={item.name}
             onChangeText={(text) => updateName(item.id, text)}
-            placeholder={`Enter field name…" (e.g. Waist)`}
+            placeholder="Enter field name (e.g. Waist)"
             placeholderTextColor={colors.textPlaceholder}
             style={[styles.rowInput, isEmpty && styles.rowInputEmpty]}
           />
@@ -184,7 +191,7 @@ const makeStyles = (c: Colors) =>
     },
     topSkip: {
       fontSize: 17,
-      fontWeight: "500",
+      fontWeight: "500", fontFamily: FONT.medium,
       color: c.text,
       paddingVertical: 8,
       paddingHorizontal: 4,
@@ -192,7 +199,7 @@ const makeStyles = (c: Colors) =>
     content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 16 },
     heading: {
       fontSize: 30,
-      fontWeight: "700",
+      fontWeight: "700", fontFamily: FONT.bold,
       color: c.text,
       lineHeight: 38,
     },
@@ -229,6 +236,6 @@ const makeStyles = (c: Colors) =>
       borderColor: c.border,
       backgroundColor: c.surface,
     },
-    addText: { fontSize: 16, fontWeight: "500", color: c.text },
+    addText: { fontSize: 16, fontWeight: "500", fontFamily: FONT.medium, color: c.text },
     cta: { paddingHorizontal: 24, paddingBottom: 8 },
   });

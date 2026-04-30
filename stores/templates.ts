@@ -1,6 +1,29 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Crypto from "expo-crypto";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+
+export type TemplateValidation =
+  | { ok: true; name: string; fields: string[] }
+  | { ok: false; error: string };
+
+export function validateTemplateInput(input: {
+  name: string;
+  fields: string[];
+}): TemplateValidation {
+  const name = input.name.trim();
+  if (!name) {
+    return { ok: false, error: "Give the template a name first." };
+  }
+  const fields = input.fields.map((f) => f.trim()).filter(Boolean);
+  if (fields.length === 0) {
+    return {
+      ok: false,
+      error: "Templates need at least one measurement field.",
+    };
+  }
+  return { ok: true, name, fields };
+}
 
 export type Template = {
   id: string;
@@ -60,7 +83,7 @@ export const useTemplates = create<TemplatesState>()(
     (set, get) => ({
       templates: seed,
       add: ({ name, fields }) => {
-        const id = String(Date.now());
+        const id = Crypto.randomUUID();
         const t: Template = {
           id,
           name,
@@ -87,7 +110,9 @@ export const useTemplates = create<TemplatesState>()(
     }),
     {
       name: "tailor-templates",
+      version: 1,
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState) => persistedState as TemplatesState,
     }
   )
 );
