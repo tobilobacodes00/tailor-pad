@@ -29,7 +29,7 @@ Only the latest published version is supported for security fixes. Older Beta AP
 - The Tailor Pad mobile app (Expo / React Native).
 - Local data storage (AsyncStorage, SecureStore).
 - Backup import/export flow.
-- Lock-screen and biometric-confirmation flows.
+- Password lock-screen flow.
 
 ## What's Out of Scope
 

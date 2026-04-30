@@ -1,6 +1,6 @@
 # Tailor Pad — Privacy Notice
 
-> Plain-language privacy notice. Maintained as a stable URL at `https://tobilobasulaimon.com/tailor/privacy` once published.
+> Plain-language privacy notice. The canonical version lives in this repository at [`docs/PRIVACY.md`](https://github.com/tobilobacodes00/tailor-pad/blob/main/docs/PRIVACY.md). A future hosted version may be published at `https://tobilobasulaimon.com/tailor/privacy`; until then, this file is the source of truth.
 > Last updated: 2026-04-30. Effective: same.
 
 ## Who we are
@@ -18,7 +18,7 @@ For the purposes of this notice and the Nigeria Data Protection Act (NDPA, 2023)
 | Templates you create | On your device only (AsyncStorage) | No |
 | Your app-lock password | On your device only (iOS Keychain / Android Keystore via `expo-secure-store`); stored as a salted hash, not as the original text | No |
 | App preferences (theme, onboarding state) | On your device only (AsyncStorage) | No |
-| Crash reports & app errors (if you opted in / if Sentry is configured for this build) | Sent to Sentry (the developer's account) | Yes — we see crash stack traces and a small set of breadcrumbs (e.g., "lock attempt failed", "backup imported"). **No customer names or measurements are included.** |
+| Crash reports & app errors | **Not currently collected.** A future build may add opt-in crash reporting via Sentry — when that ships, this notice will be updated and an in-app opt-in will be added. | No |
 
 We do not collect: your name, email, phone number, location, contacts, photos, or any analytics about your usage beyond crash reports.
 
@@ -35,7 +35,13 @@ We do not collect: your name, email, phone number, location, contacts, photos, o
 
 ## Crash reporting
 
-If this build of Tailor Pad has Sentry configured, we collect anonymized crash diagnostics: stack traces, OS version, app version, and a small set of breadcrumbs marking security-relevant moments (lock attempts, backup operations) — without customer-identifying data. This helps us detect and fix bugs that would otherwise be invisible. There is currently no in-app opt-out; if this matters to you, please let us know and we'll prioritise adding one.
+**Currently disabled.** No crash reports leave your device today. We may add opt-in crash reporting (via Sentry) in a future build to help us fix bugs that are otherwise invisible. When that ships:
+
+- It will be **opt-in**, not on by default.
+- It will collect stack traces + OS / app version + a small set of "security-relevant" breadcrumbs (e.g., "lock attempt failed").
+- It will **not** include customer names or measurement values — those are filtered out at the SDK boundary.
+
+When this changes, this notice will be updated.
 
 ## Your rights (NDPA / similar laws)
 

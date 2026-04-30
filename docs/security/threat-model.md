@@ -14,7 +14,7 @@
 ```
             Device (lost/stolen/shared)
             └── Tailor Pad APK
-                ├── LockGate (password + biometric)              ← Boundary i
+                ├── LockGate (password only)                     ← Boundary i
                 ├── App state (Zustand)
                 │   ├── customers (PII; AsyncStorage)            ← Boundary at-rest
                 │   └── templates (AsyncStorage)
@@ -56,7 +56,7 @@
 ## What's explicitly out of scope (accepted risk)
 
 - Rooted/jailbroken device reading `/data/data/.../...` directly. Encryption-at-rest of AsyncStorage payloads is documented as a follow-up item.
-- Targeted attacker with the user's unlocked phone *and* their fingerprint/face ID. The lock + biometric gate is best-effort against opportunistic threats.
+- Targeted attacker with the user's unlocked phone. The password lock is best-effort against opportunistic threats; an attacker who already has the unlocked device can read everything.
 - Network-based attackers. The app makes no app-originated network calls; outbound `Linking.openURL` only targets hardcoded HTTPS social URLs.
 
 ## Mitigations checklist
@@ -69,7 +69,7 @@
 - [x] Backup-import Zod validation + 5 MB size cap + atomic apply
 - [x] `expo-secure-store` keychain-accessible: WHEN_UNLOCKED_THIS_DEVICE_ONLY
 - [x] Re-lock on app backgrounding (`AppState: active → background`)
-- [x] Sentry crash-reporting wired (DSN set per environment)
+- [ ] Sentry crash-reporting (deferred — requires DSN + auth-token setup)
 - [x] App-level error boundary with user-facing fallback
 - [x] HTML escaping on PDF generation (incl. share-sheet `dialogTitle`)
 - [x] `SECURITY.md` with vulnerability reporting path

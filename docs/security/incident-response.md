@@ -8,7 +8,7 @@ Anything that suggests:
 - **Data loss** — a tester reports their templates / customers disappeared unexpectedly.
 - **Data exposure** — someone other than the tester is asking about / sharing a tester's customer measurements.
 - **Vulnerability disclosure** — an external researcher reports a flaw via `security@thegoodstuff.com.ng`.
-- **Suspicious behaviour** — Sentry shows a crash pattern that suggests tampering or a malicious payload.
+- **Suspicious behaviour** — once crash reporting is wired (Sentry, deferred), an unusual crash pattern that suggests tampering or a malicious payload.
 - **Lost / stolen tester device** — a tester reports their phone is gone.
 
 If unsure → treat as an incident, downgrade later.
@@ -25,7 +25,7 @@ If unsure → treat as an incident, downgrade later.
 
 1. **Acknowledge** — reply to the report (tester or researcher) within the response time. A sentence is fine: "Got this, I'm investigating, you'll hear back within 24h."
 2. **Stop the bleeding if possible** — pull the affected APK from any active distribution channel; pause `eas update` rollouts; revoke shared-link credentials.
-3. **Preserve evidence** — save the original report (email, screenshots), pull recent Sentry events, take a snapshot of the current main branch.
+3. **Preserve evidence** — save the original report (email, screenshots); pull recent Sentry events when crash reporting is wired; take a snapshot of the current main branch.
 4. **Open a private investigation log** — a dated markdown file under `docs/security/incidents/YYYY-MM-DD-<slug>.md` with: timeline, what's known, what's assumed, decisions, contacts.
 5. **Decide scope** — single tester / multi-tester / all users. Drives notification scope.
 
@@ -74,11 +74,11 @@ NDPC contact: [https://ndpc.gov.ng](https://ndpc.gov.ng) | DPO email field on th
 
 - A tester's phone is hot/slow → support, not security.
 - A tester forgot their lock password → expected per the threat model; "Wipe lock and all data" is the documented recovery.
-- A tester sees a UI glitch → Sentry-tracked bug, not an incident.
+- A tester sees a UI glitch → ordinary bug, not an incident.
 
 ## Communication discipline
 
-- **No PII** in Sentry breadcrumbs (already filtered in `utils/monitoring.ts`).
+- **No PII** in any future crash-reporting breadcrumbs — when Sentry is wired, the SDK boundary filters customer names + measurement values out before send.
 - **No tester names** in commit messages or PR descriptions.
 - **No screenshots of customer data** in support threads.
 
