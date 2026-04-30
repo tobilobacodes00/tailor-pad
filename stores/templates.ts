@@ -44,44 +44,58 @@ type TemplatesState = {
   getById: (id: string) => Template | undefined;
 };
 
-const now = Date.now();
-const oneDay = 86400000;
+const STARTER_TIMESTAMP = Date.now();
 
-const seed: Template[] = [
+const STARTER_TEMPLATES: Template[] = [
   {
-    id: "boys",
-    name: "Boys Measurement",
+    id: "starter-top",
+    name: "Top",
     fields: [
-      "Shoulder Width",
-      "Sleeves",
-      "Full chest",
-      "Waist Length",
-      "Hips",
-      "Neck",
+      "Shoulder",
+      "Sleeve Length",
+      "Round Sleeve",
+      "Chest",
+      "Waist",
+      "Hip",
+      "Top Length",
     ],
-    createdAt: now - 2 * oneDay,
-    lastUsedAt: now - 14 * 60 * 60 * 1000,
+    createdAt: STARTER_TIMESTAMP,
+    lastUsedAt: null,
   },
   {
-    id: "girls",
-    name: "Girls Measurement",
+    id: "starter-trousers",
+    name: "Trousers",
     fields: [
-      "Shoulder Width",
-      "Sleeves",
-      "Full chest",
-      "Waist Length",
-      "Hips",
+      "Waist",
+      "Hip",
+      "Thigh",
+      "Knee",
+      "Trouser Length",
+      "Bottom",
+    ],
+    createdAt: STARTER_TIMESTAMP,
+    lastUsedAt: null,
+  },
+  {
+    id: "starter-native",
+    name: "Native",
+    fields: [
+      "Shoulder",
+      "Sleeve Length",
+      "Round Sleeve",
+      "Chest",
+      "Top Length",
       "Neck",
     ],
-    createdAt: now - 7 * oneDay,
-    lastUsedAt: now - 10 * oneDay,
+    createdAt: STARTER_TIMESTAMP,
+    lastUsedAt: null,
   },
 ];
 
 export const useTemplates = create<TemplatesState>()(
   persist(
     (set, get) => ({
-      templates: seed,
+      templates: STARTER_TEMPLATES,
       add: ({ name, fields }) => {
         const id = Crypto.randomUUID();
         const t: Template = {
