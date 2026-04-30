@@ -5,7 +5,6 @@ import { Alert } from "react-native";
 import { useCustomers } from "@/stores/customers";
 import { BackupFileSchema, type BackupFile } from "@/stores/schemas";
 import { useTemplates } from "@/stores/templates";
-import { logSecurityEvent } from "@/utils/monitoring";
 
 const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
 
@@ -25,11 +24,6 @@ export async function exportBackup(): Promise<void> {
   const uri = `${FileSystem.cacheDirectory}tailor-backup-${stamp}.json`;
 
   await FileSystem.writeAsStringAsync(uri, JSON.stringify(payload, null, 2));
-
-  logSecurityEvent("backup_exported", {
-    templates: payload.templates.length,
-    customers: payload.customers.length,
-  });
 
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(uri, {
@@ -53,7 +47,6 @@ export async function importBackup(): Promise<void> {
   const file = result.assets[0];
 
   if (typeof file.size === "number" && file.size > MAX_BACKUP_BYTES) {
-    logSecurityEvent("backup_import_rejected", { reason: "too_large" });
     Alert.alert(
       "Backup too large",
       `This file is ${(file.size / 1024 / 1024).toFixed(1)} MB. Tailor backups are normally well under 5 MB. Pick a smaller file.`
@@ -65,7 +58,6 @@ export async function importBackup(): Promise<void> {
   try {
     content = await FileSystem.readAsStringAsync(file.uri);
   } catch {
-    logSecurityEvent("backup_import_rejected", { reason: "read_failed" });
     Alert.alert("Couldn't open file", "The selected file couldn't be read.");
     return;
   }
@@ -74,7 +66,6 @@ export async function importBackup(): Promise<void> {
   try {
     parsed = JSON.parse(content);
   } catch {
-    logSecurityEvent("backup_import_rejected", { reason: "invalid_json" });
     Alert.alert(
       "Invalid backup",
       "This file isn't valid JSON. Pick a Tailor backup file."
@@ -84,7 +75,6 @@ export async function importBackup(): Promise<void> {
 
   const validated = BackupFileSchema.safeParse(parsed);
   if (!validated.success) {
-    logSecurityEvent("backup_import_rejected", { reason: "schema_failed" });
     Alert.alert(
       "Not a Tailor backup",
       "This file doesn't look like a valid Tailor backup. Pick a file you exported from this app."
@@ -110,10 +100,6 @@ export async function importBackup(): Promise<void> {
           try {
             useTemplates.setState({ templates: data.templates });
             useCustomers.setState({ customers: data.customers });
-            logSecurityEvent("backup_imported", {
-              templates: data.templates.length,
-              customers: data.customers.length,
-            });
             Alert.alert(
               "Restored",
               `Loaded ${data.templates.length} templates and ${data.customers.length} customers.`

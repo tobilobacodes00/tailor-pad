@@ -49,19 +49,13 @@
           }
         }
       ],
-      "expo-secure-store",
-      "@sentry/react-native/expo"
+      "expo-secure-store"
     ],
     "extra": {
-      "sentryDsn": ""
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "enabled": true,
-      "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
+      "router": {},
+      "eas": {
+        "projectId": "e0391c02-9ef3-4a5d-bc99-49a10fd54d9f"
+      }
     },
     "experiments": {
       "typedRoutes": true,
